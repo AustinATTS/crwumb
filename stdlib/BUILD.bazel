@@ -1,13 +1,15 @@
 cc_library(
-    name = "uwu_stdlib",
-    srcs = [
-        "uwu.c",
-        "uwu_stdlib.c",
-    ],
-    hdrs = [
-        "uwu.h",
-        "uwu_stdlib.h",
-    ],
-    includes = ["."],
+    name = "uwu_stdlib_lib",
+    srcs = ["uwu_stdlib.c"],
+    hdrs = ["uwu_stdlib.h"],
+    copts = ["-O2"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "uwu_stdlib_obj",
+    srcs = ["uwu_stdlib.c"],
+    outs = ["uwu_stdlib.o"],
+    cmd = "gcc -c -O2 $< -o $@",
     visibility = ["//visibility:public"],
 )

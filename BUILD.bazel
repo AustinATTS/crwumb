@@ -129,7 +129,7 @@ cc_binary(
     ],
     linkopts = LINKOPTS,
     visibility = ["//visibility:public"],
-    deps = ["//stdlib:uwu_stdlib"],
+    deps = [],
 )
 
 # Example files
@@ -159,18 +159,24 @@ filegroup(
 # Macro to compile .uwu files
 [genrule(
     name = "example_" + src.replace("example/", "").replace(".uwu", ""),
-    srcs = [src],
-    outs = [src.replace("example/", "").replace(".uwu", "")],
-    cmd = "$(location :uwucc) $(SRCS) -o $@",
+    srcs = [
+        src,
+        "//stdlib:uwu_stdlib_obj",
+    ],
+    outs = ["example_" + src.replace("example/", "").replace(".uwu", "")],
+    cmd = "$(location :uwucc) $(location " + src + ") --stdlib $(location //stdlib:uwu_stdlib_obj) -o $@",
     executable = True,
     tools = [":uwucc"],
 ) for src in glob(["example/*.uwu"])]
 
 [genrule(
     name = "project_" + src.replace("project/", "").replace(".uwu", ""),
-    srcs = [src],
-    outs = [src.replace("project/", "").replace(".uwu", "")],
-    cmd = "$(location :uwucc) $(SRCS) -o $@",
+    srcs = [
+        src,
+        "//stdlib:uwu_stdlib_obj",
+    ],
+    outs = ["project_" + src.replace("project/", "").replace(".uwu", "")],
+    cmd = "$(location :uwucc) $(location " + src + ") --stdlib $(location //stdlib:uwu_stdlib_obj) -o $@",
     executable = True,
     tools = [":uwucc"],
 ) for src in glob(
@@ -180,9 +186,12 @@ filegroup(
 
 [genrule(
     name = "test_" + src.replace("test/", "").replace(".uwu", ""),
-    srcs = [src],
-    outs = [src.replace("test/", "").replace(".uwu", "")],
-    cmd = "$(location :uwucc) $(SRCS) -o $@",
+    srcs = [
+        src,
+        "//stdlib:uwu_stdlib_obj",
+    ],
+    outs = ["test_" + src.replace("test/", "").replace(".uwu", "")],
+    cmd = "$(location :uwucc) $(location " + src + ") --stdlib $(location //stdlib:uwu_stdlib_obj) -o $@",
     executable = True,
     tools = [":uwucc"],
 ) for src in glob(
