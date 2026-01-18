@@ -25,7 +25,7 @@ ifeq ($(PLATFORM),Darwin)
 else ifeq ($(PLATFORM),Linux)
     PLATFORM_NAME = Linux
     CFLAGS += -DUWUCC_PLATFORM_LINUX
-    LDFLAGS += -no-pie
+    LDFLAGS += -no-pie -lm
 
     ifeq ($(ARCH),aarch64)
         ARCH_NAME = arm64
@@ -45,10 +45,10 @@ DEBUG_FLAGS   = -g -O0 -DDEBUG -fsanitize=address
 RELEASE_FLAGS = -O2 -DNDEBUG
 TEST_FLAGS    = -g -O0 -DDEBUG --coverage
 
-SRC_DIR   = src
-BUILD_DIR = build
-OBJ_DIR   = $(BUILD_DIR)/obj
-BIN_DIR   = $(BUILD_DIR)/bin
+SRC_DIR    = src
+BUILD_DIR  = build
+OBJ_DIR    = $(BUILD_DIR)/obj
+BIN_DIR    = $(BUILD_DIR)/bin
 STDLIB_DIR = stdlib
 
 TESTS_DIR    = tests
