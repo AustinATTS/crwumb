@@ -1,3 +1,3 @@
 # Projects
 
-place to put code that won't be commited.
+place to put code that won't be committed.
