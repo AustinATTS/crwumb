@@ -44,6 +44,58 @@ Things will break. That’s part of the point.
 | **x86_64** | Linux |
 | **ARM64** | Linux, macOS |
 
+## Building 🔨
+
+UwU-C supports two build systems: **Make** (simple and straightforward) or **Bazel** (fast with great caching).
+
+### Using Make
+
+```bash
+# Build release version
+make
+
+# Build debug version (with AddressSanitizer)
+make debug
+
+# Build and run tests
+make test
+
+# Build examples
+make examples
+
+# Clean build artifacts
+make clean
+```
+
+### Using Bazel
+
+```bash
+# Build the compiler
+bazel build //:uwucc
+
+# Build in debug mode
+bazel build --config=debug //:uwucc
+
+# Run the compiler
+bazel run //:uwucc -- input.uwu -o output
+
+# Compile an example (e.g., example/ez.uwu)
+bazel build //:compile_ez
+bazel run //:compile_ez
+
+# Clean
+bazel clean
+```
+
+For more details on Bazel usage, see [toasty-software-guide-to-bazel.md](docs/toasty-software-guide-to-bazel.md).
+
+### Requirements
+
+- C compiler (clang recommended, gcc works too)
+- Make or Bazel/Bazelisk
+- Platform: Linux or macOS
+- Architecture: x86_64 or ARM64
+
 ## Repo Layout 📂
 
 *   `src/` — compiler source
