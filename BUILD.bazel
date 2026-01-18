@@ -137,12 +137,54 @@ filegroup(
     srcs = glob(["example/*.uwu"]),
 )
 
+# Personal project files
+filegroup(
+    name = "project_sources",
+    srcs = glob(
+        ["project/*.uwu"],
+        allow_empty = True,
+    ),
+)
+
+# Test files
+filegroup(
+    name = "test_sources",
+    srcs = glob(
+        ["test/*.uwu"],
+        allow_empty = True,
+    ),
+)
+
 # Macro to compile .uwu files
 [genrule(
-    name = "compile_" + src.replace("example/", "").replace(".uwu", ""),
+    name = "example_" + src.replace("example/", "").replace(".uwu", ""),
     srcs = [src],
     outs = [src.replace("example/", "").replace(".uwu", "")],
     cmd = "$(location :uwucc) $(SRCS) -o $@",
     executable = True,
     tools = [":uwucc"],
 ) for src in glob(["example/*.uwu"])]
+
+[genrule(
+    name = "project_" + src.replace("project/", "").replace(".uwu", ""),
+    srcs = [src],
+    outs = [src.replace("project/", "").replace(".uwu", "")],
+    cmd = "$(location :uwucc) $(SRCS) -o $@",
+    executable = True,
+    tools = [":uwucc"],
+) for src in glob(
+    ["project/*.uwu"],
+    allow_empty = True,
+)]
+
+[genrule(
+    name = "test_" + src.replace("test/", "").replace(".uwu", ""),
+    srcs = [src],
+    outs = [src.replace("test/", "").replace(".uwu", "")],
+    cmd = "$(location :uwucc) $(SRCS) -o $@",
+    executable = True,
+    tools = [":uwucc"],
+) for src in glob(
+    ["test/*.uwu"],
+    allow_empty = True,
+)]

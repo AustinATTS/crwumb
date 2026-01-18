@@ -56,7 +56,7 @@ The build system automatically creates targets for all `.uwu` files in the `exam
 
 For a file `example/ez.uwu`:
 ```bash
-bazel build //:compile_ez
+bazel build //:example_ez
 ```
 
 The compiled binary will be at `bazel-bin/ez`.
@@ -64,7 +64,7 @@ The compiled binary will be at `bazel-bin/ez`.
 ### Run an Example
 
 ```bash
-bazel run //:compile_ez
+bazel run //:example_ez
 ```
 
 ### List All Available Targets

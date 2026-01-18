@@ -80,8 +80,8 @@ bazel build --config=debug //:uwucc
 bazel run //:uwucc -- input.uwu -o output
 
 # Compile an example (e.g., example/ez.uwu)
-bazel build //:compile_ez
-bazel run //:compile_ez
+bazel build //:example_ez
+bazel run //:example_ez
 
 # Clean
 bazel clean
