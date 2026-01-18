@@ -44,7 +44,7 @@ Things will break. That’s part of the point.
 | **x86_64** | Linux |
 | **ARM64** | Linux, macOS |
 
-## Building 🔨
+## Building 
 
 UwU-C supports two build systems: **Make** (simple and straightforward) or **Bazel** (fast with great caching).
 
