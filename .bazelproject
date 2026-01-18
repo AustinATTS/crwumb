@@ -1,0 +1,18 @@
+directories:
+  src
+  include
+  stdlib
+  example
+  project
+
+targets:
+  //:uwucc
+  //stdlib:uwu_stdlib_lib
+
+additional_languages:
+  c
+
+build_flags:
+  --compilation_mode=dbg
+
+derive_targets_from_directories: false
