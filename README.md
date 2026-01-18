@@ -96,7 +96,7 @@ For more details on Bazel usage, see [toasty-software-guide-to-bazel.md](docs/to
 - Platform: Linux or macOS
 - Architecture: x86_64 or ARM64
 
-## Repo Layout 📂
+## Repo Layout 
 
 *   `src/` — compiler source
 *   `include/` — headers
@@ -104,6 +104,6 @@ For more details on Bazel usage, see [toasty-software-guide-to-bazel.md](docs/to
 *   `example/` — example programs
 *   `docs/` — notes and explanations
 
-## License ⚖️
+## License 
 
 **WTFPL** — do whatever you want.
