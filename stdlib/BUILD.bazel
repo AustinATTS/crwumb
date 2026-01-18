@@ -1,0 +1,13 @@
+cc_library(
+    name = "uwu_stdlib",
+    srcs = [
+        "uwu.c",
+        "uwu_stdlib.c",
+    ],
+    hdrs = [
+        "uwu.h",
+        "uwu_stdlib.h",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

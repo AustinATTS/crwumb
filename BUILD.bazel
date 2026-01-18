@@ -129,6 +129,7 @@ cc_binary(
     ],
     linkopts = LINKOPTS,
     visibility = ["//visibility:public"],
+    deps = ["//stdlib:uwu_stdlib"],
 )
 
 # Example files
