@@ -23,7 +23,7 @@ Instead of using LLVM, UwU-C generates assembly directly. This makes the behavio
 *   **Custom IR** — My own intermediate representation.
 *   **Handwritten codegen** — Raw assembly output for full control.
 *   **Experimental memory safety** — Testing out some safer memory ideas.
-*   **Cute syntax** — Making low-level dev a bit more UwU.
+*   **Cute syntax** — Making low-level dev a bit more cute.
 *   **Work in progress** — Always evolving.
 
 ## Project Status 
