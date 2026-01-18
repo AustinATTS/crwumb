@@ -94,13 +94,27 @@ static const char* x86_64_callee_saved[] = {"rbx", "r12", "r13", "r14", "r15"};
 static const int x86_64_num_callee_saved = 5;
 
 static void emit_x86_64_prologue(FILE* f, const char* func_name, int frame_size) {
-    fprintf(f, ".globl _%s\n", func_name);
-    fprintf(f, "_%s:\n", func_name);
+    fprintf(f, ".globl %s\n", func_name);
+    fprintf(f, ".type %s, @function\n", func_name);
+    fprintf(f, "%s:\n", func_name);
 
     fprintf(f, "    pushq %%rbp\n");
     fprintf(f, "    movq %%rsp, %%rbp\n");
 
-    int aligned_frame = align_to(frame_size, 16);
+    fprintf(f, "    pushq %%rbx\n");
+    fprintf(f, "    pushq %%r12\n");
+
+    // After pushq rbp (8) + pushq rbx (8) + pushq r12 (8) = 24 bytes pushed
+    // We need (24 + frame_size) % 16 == 0 for alignment
+    // So we need frame_size % 16 == 8 (since 24 % 16 == 8)
+    int aligned_frame = frame_size;
+    if ((aligned_frame % 16) != 8) {
+        aligned_frame = align_to(aligned_frame, 16);
+        if ((aligned_frame % 16) != 8) {
+            aligned_frame += 8;
+        }
+    }
+
     if (aligned_frame > 0) {
         fprintf(f, "    subq $%d, %%rsp\n", aligned_frame);
     }
@@ -109,15 +123,11 @@ static void emit_x86_64_prologue(FILE* f, const char* func_name, int frame_size)
         fprintf(f, "    leaq -%d(%%rsp), %%rax\n", aligned_frame);
         fprintf(f, "    cmpq $0, (%%rax)\n");
     }
-
-    fprintf(f, "    pushq %%rbx\n");
-    fprintf(f, "    pushq %%r12\n");
 }
 
 static void emit_x86_64_epilogue(FILE* f) {
     fprintf(f, "    popq %%r12\n");
     fprintf(f, "    popq %%rbx\n");
-
     fprintf(f, "    leave\n");
     fprintf(f, "    retq\n");
 }
@@ -148,7 +158,7 @@ static void emit_x86_64_bounds_check(FILE* f, const char* index, const char* siz
     fprintf(f, "    jl .Lbounds_ok_%s\n", index);
 
     fprintf(f, "    leaq .Lbounds_error(%%rip), %%rdi\n");
-    fprintf(f, "    call _uwu_bounds_error\n");
+    fprintf(f, "    call uwu_bounds_error@PLT\n");
     fprintf(f, ".Lbounds_ok_%s:\n", index);
 }
 
@@ -160,7 +170,7 @@ static void emit_x86_64_null_check(FILE* f, const char* ptr) {
     fprintf(f, "    jnz .Lnull_ok_%s\n", ptr);
 
     fprintf(f, "    leaq .Lnull_error(%%rip), %%rdi\n");
-    fprintf(f, "    call _uwu_null_error\n");
+    fprintf(f, "    call uwu_null_error@PLT\n");
     fprintf(f, ".Lnull_ok_%s:\n", ptr);
 }
 
@@ -180,7 +190,7 @@ static void emit_x86_64_call(FILE* f, const char* func, const char** args, int n
         fprintf(f, "    movq %%rax, %%%s\n", x86_64_arg_regs[i]);
     }
 
-    fprintf(f, "    call _%s\n", func);
+    fprintf(f, "    call %s@PLT\n", func);
 
     int stack_args = num_args > 6 ? num_args - 6 : 0;
     if (stack_args > 0 || need_align) {
@@ -361,7 +371,7 @@ static void emit_x86_64_instruction(FILE* f, IRInstruction* inst, int frame_size
     }
     else if (strcmp(inst->opcode, "print_str") == 0) {
         fprintf(f, "    leaq %s(%%rip), %%rdi\n", inst->operands[0]);
-        fprintf(f, "    call _puts\n");
+        fprintf(f, "    call puts@PLT\n");
     }
     else if (strcmp(inst->opcode, "ret") == 0) {
         if (inst->operands[0]) {
@@ -384,8 +394,9 @@ static const char* arm64_arg_regs[] = {"x0", "x1", "x2", "x3", "x4", "x5", "x6",
 static const int arm64_num_arg_regs = 8;
 
 static void emit_arm64_prologue(FILE* f, const char* func_name, int frame_size) {
-    fprintf(f, ".globl _%s\n", func_name);
-    fprintf(f, "_%s:\n", func_name);
+    fprintf(f, ".globl %s\n", func_name);
+    fprintf(f, ".type %s, %%function\n", func_name);
+    fprintf(f, "%s:\n", func_name);
 
     fprintf(f, "    stp x29, x30, [sp, #-16]!\n");
     fprintf(f, "    mov x29, sp\n");
@@ -431,8 +442,8 @@ static void emit_arm64_load(FILE* f, const char* src, int frame_size) {
         int offset = get_stack_offset(src, frame_size);
         fprintf(f, "    ldr x0, [sp, #%d]\n", -offset);
     } else {
-        fprintf(f, "    adrp x0, %s@PAGE\n", src);
-        fprintf(f, "    add x0, x0, %s@PAGEOFF\n", src);
+        fprintf(f, "    adrp x0, %s\n", src);
+        fprintf(f, "    add x0, x0, :lo12:%s\n", src);
     }
 }
 
@@ -491,9 +502,9 @@ static void emit_arm64_instruction(FILE* f, IRInstruction* inst, int frame_size)
         fprintf(f, "    cbnz x0, %s\n", inst->operands[1]);
     }
     else if (strcmp(inst->opcode, "print_str") == 0) {
-        fprintf(f, "    adrp x0, %s@PAGE\n", inst->operands[0]);
-        fprintf(f, "    add x0, x0, %s@PAGEOFF\n", inst->operands[0]);
-        fprintf(f, "    bl _puts\n");
+        fprintf(f, "    adrp x0, %s\n", inst->operands[0]);
+        fprintf(f, "    add x0, x0, :lo12:%s\n", inst->operands[0]);
+        fprintf(f, "    bl puts\n");
     }
     else if (strcmp(inst->opcode, "ret") == 0) {
         if (inst->operands[0]) {
@@ -509,7 +520,7 @@ static void emit_arm64_instruction(FILE* f, IRInstruction* inst, int frame_size)
 #endif
 
 static void emit_string_table(FILE* f, IRProgram* program) {
-    fprintf(f, ".section __TEXT,__cstring,cstring_literals\n");
+    fprintf(f, ".section .rodata\n");
     for (IRInstruction* inst = program->head; inst; inst = inst->next) {
         if (strcmp(inst->opcode, "string") == 0) {
             fprintf(f, "%s:\n", inst->operands[0]);
@@ -523,9 +534,9 @@ static void emit_string_table(FILE* f, IRProgram* program) {
     }
     if (config.enable_null_checks) {
         fprintf(f, ".Lnull_error:\n");
-        fprintf(f, "    .asciz \"runtime error: null pointer dereference\\\n\"\n");
+        fprintf(f, "    .asciz \"runtime error: null pointer dereference\\n\"\n");
     }
-    fprintf(f, ".text\n");
+    fprintf(f, ".section .text\n");
 }
 
 void codegen_emit_asm(IRProgram* program, const char* output_file) {
@@ -535,7 +546,7 @@ void codegen_emit_asm(IRProgram* program, const char* output_file) {
     }
 
 #ifdef UWUCC_ARCH_X86_64
-    fprintf(f, ".section __TEXT,__text,regular,pure_instructions\n");
+    fprintf(f, ".section .text\n");
     emit_string_table(f, program);
 
     for (IRInstruction* i = program->head; i; i = i->next) {
@@ -545,8 +556,7 @@ void codegen_emit_asm(IRProgram* program, const char* output_file) {
     }
 
 #elif defined(UWUCC_ARCH_ARM64)
-    fprintf(f, ".section __TEXT,__text,regular,pure_instructions\n");
-    fprintf(f, ".macosx_version_min 11, 0\n");
+    fprintf(f, ".section .text\n");
     emit_string_table(f, program);
 
     for (IRInstruction* i = program->head; i; i = i->next) {
