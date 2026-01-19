@@ -17,5 +17,6 @@ struct idt_ptr {
 } __attribute__((packed));
 
 void idt_init(void);
+void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags);
 
 #endif

@@ -1,6 +1,11 @@
 [bits 32]
-[extern kernel_main]
+global _start
+extern kernel_main
 
 _start:
+    cli
     call kernel_main
-    jmp $
+
+.hang:
+    hlt
+    jmp .hang
