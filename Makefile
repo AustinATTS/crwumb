@@ -1,133 +1,63 @@
-# Build UwUC
+# izi
 
-CC ?= clang
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude -Isrc
-LDFLAGS =
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -O2 -Iinclude
+LDFLAGS = -lm
 
-PLATFORM := $(shell uname -s)
-ARCH     := $(shell uname -m)
-
-# platform detection
-ifeq ($(PLATFORM),Darwin)
-    PLATFORM_NAME = macOS
-    CFLAGS += -DUWUCC_PLATFORM_MACOS
-
-    ifeq ($(ARCH),arm64)
-        ARCH_NAME = arm64
-        CFLAGS += -DUWUCC_ARCH_ARM64
-    else ifeq ($(ARCH),x86_64)
-        ARCH_NAME = x86_64
-        CFLAGS += -DUWUCC_ARCH_X86_64
-    else
-        $(error unsupported macOS architecture: $(ARCH))
-    endif
-
-else ifeq ($(PLATFORM),Linux)
-    PLATFORM_NAME = Linux
-    CFLAGS += -DUWUCC_PLATFORM_LINUX
-    LDFLAGS += -no-pie -lm
-
-    ifeq ($(ARCH),aarch64)
-        ARCH_NAME = arm64
-        CFLAGS += -DUWUCC_ARCH_ARM64
-    else ifeq ($(ARCH),x86_64)
-        ARCH_NAME = x86_64
-        CFLAGS += -DUWUCC_ARCH_X86_64
-    else
-        $(error unsupported Linux architecture: $(ARCH))
-    endif
-
-else
-    $(error unsupported platform: $(PLATFORM))
-endif
-
-DEBUG_FLAGS   = -g -O0 -DDEBUG -fsanitize=address
-RELEASE_FLAGS = -O2 -DNDEBUG
-TEST_FLAGS    = -g -O0 -DDEBUG --coverage
-
-SRC_DIR    = src
-BUILD_DIR  = build
-OBJ_DIR    = $(BUILD_DIR)/obj
-BIN_DIR    = $(BUILD_DIR)/bin
+SRC_DIR = src
 STDLIB_DIR = stdlib
+KERNEL_DIR = kernel
+BUILD_DIR = build
 
-TESTS_DIR    = tests
-EXAMPLES_DIR = examples
 
-SRCS := $(filter-out src/parser_legacy.c , $(wildcard src/*.c))
-OBJS := $(SRCS:src/%.c=$(OBJ_DIR)/%.o)
+COMPILER_SRCS = $(filter-out $(SRC_DIR)/parser_legacy.c, $(wildcard $(SRC_DIR)/*.c))
+COMPILER_OBJS = $(COMPILER_SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+COMPILER_BIN  = $(BUILD_DIR)/uwucc
 
-TARGET = $(BIN_DIR)/uwucc
-STDLIB = $(STDLIB_DIR)/uwu_stdlib.o
+STDLIB_SRCS = $(STDLIB_DIR)/uwu_stdlib.c
+STDLIB_OBJ  = $(BUILD_DIR)/uwu_stdlib.o
 
-all: CFLAGS += $(RELEASE_FLAGS)
-all: $(TARGET) $(STDLIB)
-	@echo "built for $(PLATFORM_NAME) ($(ARCH_NAME))"
+.PHONY: all compiler stdlib kernel clean help
 
-debug: CFLAGS += $(DEBUG_FLAGS)
-debug: $(TARGET) $(STDLIB)
+all: compiler stdlib
 
-release: CFLAGS += $(RELEASE_FLAGS) -march=native
-release: $(TARGET) $(STDLIB)
+help:
+	@echo "Build System"
+	@echo ""
+	@echo "Targets:"
+	@echo "  make compiler    - Build the UwU-C compiler"
+	@echo "  make stdlib      - Build the standard library"
+	@echo "  make kernel      - Build the UwUOS kernel"
+	@echo "  make all         - Build compiler and stdlib (default)"
+	@echo "  make clean       - Clean all build artifacts"
 
-test-build: CFLAGS += $(TEST_FLAGS)
-test-build: LDFLAGS += --coverage
-test-build: $(TARGET) $(STDLIB)
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(OBJS) | $(BIN_DIR)
-	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
+# ---------- compiler ----------
 
-$(STDLIB): $(STDLIB_DIR)/uwu_stdlib.c
-	$(CC) -c -O2 $(STDLIB_DIR)/uwu_stdlib.c -o $(STDLIB)
+compiler: $(BUILD_DIR) $(COMPILER_BIN)
 
-$(OBJ_DIR)/%.o: src/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+$(COMPILER_BIN): $(COMPILER_OBJS)
+	$(CC) $(COMPILER_OBJS) -o $@ $(LDFLAGS)
 
--include $(OBJS:.o=.d)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR):
-	mkdir -p $@
+# ---------- stdlib ----------
 
-$(BIN_DIR):
-	mkdir -p $@
+stdlib: $(BUILD_DIR) $(STDLIB_OBJ)
+
+$(STDLIB_OBJ): $(STDLIB_SRCS) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ---------- kernel ----------
+
+kernel:
+	$(MAKE) -C $(KERNEL_DIR)
+
+# ---------- clean ----------
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f $(STDLIB)
-	rm -f *.gcov *.gcda *.gcno
-
-distclean: clean
-	rm -f *.o *.d
-
-test: $(TARGET) $(STDLIB)
-	@if [ -d "$(TESTS_DIR)" ]; then \
-	   for t in $(TESTS_DIR)/*.uwu; do \
-	      [ -f "$$t" ] || continue; \
-	      ./$(TARGET) "$$t" -o "$(BUILD_DIR)/test_$$(basename $$t .uwu)" || exit 1; \
-	   done; \
-	fi
-
-examples: $(TARGET) $(STDLIB)
-	@if [ -d "$(EXAMPLES_DIR)" ]; then \
-	   for e in $(EXAMPLES_DIR)/*.uwu; do \
-	      [ -f "$$e" ] || continue; \
-	      ./$(TARGET) "$$e" -o "$(BUILD_DIR)/example_$$(basename $$e .uwu)" || exit 1; \
-	   done; \
-	fi
-
-install: $(TARGET) $(STDLIB)
-	install -d $(DESTDIR)/usr/local/bin
-	install -m 755 $(TARGET) $(DESTDIR)/usr/local/bin/uwucc
-	install -d $(DESTDIR)/usr/local/lib/uwucc
-	install -m 644 $(STDLIB) $(DESTDIR)/usr/local/lib/uwucc/uwu_stdlib.o
-
-uninstall:
-	rm -f /usr/local/bin/uwucc
-	rm -rf /usr/local/lib/uwucc
-
-info:
-	@echo "platform: $(PLATFORM_NAME)"
-	@echo "arch:     $(ARCH_NAME)"
-	@echo "cc:       $(CC)"
-
-.DEFAULT_GOAL := all
+	$(MAKE) -C $(KERNEL_DIR) clean
