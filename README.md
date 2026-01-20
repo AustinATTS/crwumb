@@ -103,6 +103,7 @@ For more details on Bazel usage, see [toasty-software-guide-to-bazel.md](docs/to
 *   `stdlib/` — experimental standard library
 *   `example/` — example programs
 *   `docs/` — notes and explanations
+*   `kernel/` — operating system
 
 ## License 
 
