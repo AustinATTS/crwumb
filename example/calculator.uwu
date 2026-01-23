@@ -1,29 +1,26 @@
 nuzzle main ( ) -> chonk {
-    uwu_print("Welcome to the 6 thingy, enter a number to pick an operator: ");
-    uwu_print("1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n");
+    uwu_printf("Please enter the first number: ");
+    value_one: chonk = read_int();
+    uwu_printf("Pick an operator\n");
+    uwu_printf("1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n");
     operator: chonk = read_int();
+    uwu_printf("Please enter the second number: ");
+    value_two: chonk = read_int();
+
     pwease (operator == 1) {
-        uwu_print("Enter Value: ");
-        var1: chonk = read_int();
-        print_int(var1 + 6);
+        uwu_printf("%d + %d = %d\n", value_one, value_two, value_one + value_two);
     }
     nowu {
         pwease (operator == 2) {
-            uwu_print("Enter Value: ");
-            var1: chonk = read_int();
-            print_int(var1 - 6);
+            uwu_printf("%d  %d = %d\n", value_one, value_two, value_one - value_two);
         }
         nowu {
             pwease (operator == 3) {
-                uwu_print("Enter Value: ");
-                var1: chonk = read_int();
-                print_int(var1 * 6);
+                uwu_printf("%d * %d = %d\n", value_one, value_two, value_one * value_two);
             }
             nowu {
                 pwease (operator == 4) {
-                    uwu_print("Enter Value: ");
-                    var1: chonk = read_int();
-                    print_int(var1 / 6);
+                    uwu_printf("%d / %d = %d\n", value_one, value_two, value_one / value_two);
                 }
             }
         }
