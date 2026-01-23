@@ -48,10 +48,8 @@ static void symtab_add(SymbolTable* st, const char* name, Type* type, bool is_fu
     sym->stack_offset = 0;
 
     if (!is_func && type) {
-        int align = type->align > 0 ? type->align : 8;
-        current_stack_offset = (current_stack_offset + align - 1) & ~(align - 1);
         sym->stack_offset = current_stack_offset;
-        current_stack_offset += type->size;
+        current_stack_offset++;
     }
 
     sym->next = st->head;
@@ -236,6 +234,9 @@ static Type* check_expression(ASTNode* node) {
                 node->type = sym->type;
             } else {
                 node->type = type_new(TYPE_CHONK);
+            }
+            for (int i = 1; i < node->child_count; i++) {
+                check_expression(node->children[i]);
             }
             return node->type;
         }
