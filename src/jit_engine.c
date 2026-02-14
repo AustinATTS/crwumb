@@ -391,7 +391,7 @@ int engine_run_main(ExecEngine *ee) {
 void engine_print_stats(ExecEngine *ee) {
     if (!ee) return;
     printf("ez");
-    printf("total comp:    %d", ee->stats.total_comps);
+    printf("total comp:    %d\n", ee->stats.total_comps);
     printf("total recomp:  %d\n", ee->stats.total_recomps);
     printf("execution time:        %lld ms\n", (long long)ee->stats.exec_time);
     printf("compilation time:      %lld ms\n", (long long)ee->stats.comp_time);
